@@ -1584,6 +1584,7 @@ void QtiSurfaceFlingerExtension::qtiSetDisplayAnimating() {
         }
 
         qtiGetHwcDisplayId(displayDevice, &hwcDisplayId);
+        bool mQtiHasScreenshot = (mQtiHasScreenshotSet.count(hwcDisplayId) > 0);
         if (hasScreenshot != mQtiHasScreenshot) {
             if (mQtiDisplayConfigAidl) {
                 ALOGV("Trying to notify DP animation to composer using DisplayConfigAIDL.");
@@ -1592,8 +1593,11 @@ void QtiSurfaceFlingerExtension::qtiSetDisplayAnimating() {
                 ALOGV("Trying to notify DP animation to composer using DisplayConfigHIDL.");
                 mQtiDisplayConfigHidl->SetDisplayAnimating(hwcDisplayId, hasScreenshot);
             }
-
-            mQtiHasScreenshot = hasScreenshot;
+            if (mQtiHasScreenshot) {  // hasScreenshot previously active, setting in-active now
+                mQtiHasScreenshotSet.erase(hwcDisplayId);
+            } else{  // hasScreenshot previously in-active for this display, setting active now
+                mQtiHasScreenshotSet.insert(hwcDisplayId);
+            }
         }
     }
 }
